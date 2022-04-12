@@ -1,0 +1,131 @@
+﻿/*1] Elenca gli impiegati che seguono uno specifico cliente.*/
+SELECT impiegati.nome 
+	FROM impiegati
+	LEFT JOIN ordini ON impiegati.id = ordini.xidi 
+
+/*2] Elenca gli ordini seguiti da uno specifico impiegato.*/
+
+SELECT ordini.* 
+	FROM ordini,impiegati
+    WHERE impiegati.id = ordini.xidi and impiegati.nome = "Mario Rossi"
+
+/*3] Fai un elenco dei clienti indicando la loro spesa complessiva in ordine decrescente.*/
+
+SELECT ordini.cliente as cl,SUM(ordini.importo) as sumOrd
+	FROM ordini,impiegati
+    WHERE impiegati.id =  ordini.xidi
+    GROUP BY cl
+    ORDER BY sumOrd DESC
+
+/*4] Fai un elenco dei livelli indicando per ogni livello quanti ordini sono seguiti.*/
+SELECT impiegati.livello as lvlI,COUNT(ordini.id) as ctnOrd
+	FROM impiegati,ordini
+    WHERE impiegati.id = ordini.xidi
+    GROUP BY lvlI
+    ORDER BY ctnOrd DESC
+
+
+
+
+--------------------------------- ESERCIZIO 2 -----------------
+1] Tutti i libri prestati ad un utente specifico in ordine cronologico.
+
+SELECT DISTINCT libri.titolo 
+	FROM ordiniLibri as oL
+    INNER JOIN libri ON oL.idLibri = libri.id
+    INNER JOIN utenti ON oL.idUtenti  = utenti.id
+    ORDER BY oL.data_inizio
+
+/* 2] Individua i primi tre lettori che hanno letto più libri.*/
+
+SELECT utenti.nome
+	FROM ordiniLibri as oL
+    INNER JOIN utenti ON oL.idUtenti = utenti.id
+    INNER JOIN libri ON oL.idLibri = libri.id
+    GROUP BY utenti.nome
+    ORDER BY COUNT(libri.id) DESC
+    LIMIT 3
+
+3] Individua tutti i possessori dei libri non ancora rientrati e il titolo degli stessi.
+
+
+SELECT utenti.nome,libri.titolo
+	FROM ordiniLibri as oL
+    INNER JOIN libri ON oL.idLibri = libri.id
+    INNER JOIN utenti ON oL.idUtenti = utenti.id
+    WHERE oL.data_fine IS NULL
+
+
+
+
+/*4] Dare lo storico dei libri chiesi in prestito da un utente indicando il periodo.*/
+SELECT *
+	FROM ordiniLibri as O
+    INNER JOIN libri ON O.idLibri = libri.id
+    INNER JOIN utenti ON O.idUtenti = utenti.id
+    WHERE utenti.nome = "Andrea" AND O.data_inizio BETWEEN '2010-12-10' AND '2019-12-30'
+
+
+5] Fai la classifica dei libri maggiormente prestati.
+
+
+
+------------------------------------- ESERCIZIO 3 ---------------------------
+/*1.Vogliamo sapere quanti box sono presenti nel database
+2.Vogliamo sapere quante ville hanno a disposizione un giardino.
+3.Vogliamo sapere quanti mq di superficie dispone uno specificato proprietario solo sugli immobili.
+4.Elencare tutti i possessori di una villa.
+5.Elencare tutti i possessori di un appartamento con Box.
+6.Elencare tutti i possessori di immobili la cui data di costruzione è successiva al 1996.
+7.Produrre una vista dei proprietari di appartamenti con a fianco il numero di vani complessivi disponibili.
+8.Produrre una vista dei proprietari la cui somma dei mq degli immobili posseduti sia superiore a 400 mq.  */
+
+
+1)
+SELECT *
+	FROM immobili
+    WHERE immobili.annessi = "Box"
+
+
+
+3) 
+SELECT SUM(immobili.superficie) as sumIm
+	FROM immobili
+    INNER JOIN propretari ON propretari.idIm = immobili.codice
+    WHERE propretari.nome = "Andrea"
+
+
+4)
+SELECT propretari.nome,propretari.cognome
+	FROM immobili
+    INNER JOIN propretari ON propretari.idIm = immobili.codice
+    WHERE immobili.tipo = "Villa"
+
+5) 
+SELECT propretari.nome,propretari.cognome
+	FROM propretari
+    INNER JOIN immobili ON propretari.idIm = immobili.codice
+    WHERE immobili.tipo = "Appartamento" AND immobili.annessi = "Box"
+
+
+6)  
+SELECT propretari.nome,propretari.cognome
+	FROM propretari
+    INNER JOIN immobili ON propretari.idIm = immobili.codice
+    WHERE immobili.anno_fabbr > 1996
+
+
+
+7)
+SELECT propretari.cognome as cgn,COUNT(immobili.n_vani) as ctnVan
+	FROM propretari
+    INNER JOIN immobili ON immobili.codice = propretari.idIm
+    GROUP BY cgn
+    WHERE immobili.tipo = “Appartamento”
+
+8)
+SELECT propretari.cognome as cgn,Sum(immobili.superficie) as ctnSup
+	FROM propretari
+    INNER JOIN immobili ON immobili.codice = propretari.idIm
+    GROUP BY cgn
+    HAVING ctnSup >300
